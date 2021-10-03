@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-eOJMYsd53ii+scO/bJGFsiCZc+5NDVN2yr8+0RDqr0Ql0h+rP48ckxlpbzKgwra6" crossorigin="anonymous">
+  <link rel="stylesheet" href="static/pygments.css">
+  <link rel="stylesheet" href="static/style.css">
+  <script src="https://kit.fontawesome.com/bcca6c1b87.js" crossorigin="anonymous"></script>
+
+  <title>
+    
+    
+      pushrax.com
+    
+  </title>
+</head>
+<body>
+  <header class="my-header">
+    <div class="container">
+      <div class="row">
+        <div class="col">
+          <h1 class="display-1">pushrax.com</h1>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <nav aria-label="breadcrumb" class="my-breadcrumb">
+    <div class="container">
+      <div class="row d-flex align-items-center">
+        <div class="col">
+          <ol class="breadcrumb" style="margin: 0;">
+            
+            <li class="breadcrumb-item active" aria-current="page">Home</li>
+          </ol>
+        </div>
+      </div>
+    </div>
+  </nav>
+  
+  <div class="container my-content">
+    <article>
+      
+  <h1>
+    
+    
+      Welcome to pushrax.com
+    
+  </h1>
+  <p>This is a simple website with my stuff.</p>
+<ul>
+<li><a href="/lcd-clock/">7-Segment LCD Clock</a>: A short presentation of a beautiful clock I built using a LCD-panel that can be powered from batteries for at least a year.</li>
+<li><a href="/e-ink-clock/">E-Ink Clock</a>: My experiences with building an E-Ink clock using a Nook replacement display (ED060SC4) and a LPC1227 ARM CPU programmed with Rust.</li>
+<li>If you are for some reason interested in parallelizing Dijkstra’s algorithm:<ul>
+<li>I have written <a href="https://repositum.tuwien.at/bitstream/20.500.12708/1948/2/Kainer%20Michael%20-%202018%20-%20Mehr%20Parallelismus%20in%20Single-Source%20Shortest%20Path...pdf">my master’s thesis&#x202F;<i class="fas fa-external-link-alt fa-xs"></i></a> about this topic.</li>
+<li>A summary can be found on <a href="https://arxiv.org/abs/1903.12085">arXiv&#x202F;<i class="fas fa-external-link-alt fa-xs"></i></a>.</li>
+<li>My tool to simulate the number of relaxation phases required for various classes of graphs can be found on <a href="https://github.com/kaini/sssp-simulation">GitHub (sssp-simulation)&#x202F;<i class="fas fa-external-link-alt fa-xs"></i></a>.</li>
+<li>My benchmarking tool can also be found on <a href="https://github.com/kaini/sssp-shm">GitHub (sssp-shm)&#x202F;<i class="fas fa-external-link-alt fa-xs"></i></a>, but the code is very ugly.</li>
+</ul>
+</li>
+<li>I participate in <a href="https://adventofcode.com/">Advent of Code&#x202F;<i class="fas fa-external-link-alt fa-xs"></i></a>:<ul>
+<li><a href="https://github.com/kaini/aoc2020">Advent of Code 2020 (Rust)&#x202F;<i class="fas fa-external-link-alt fa-xs"></i></a></li>
+<li><a href="https://github.com/kaini/aoc2019">Advent of Code 2019 (Python)&#x202F;<i class="fas fa-external-link-alt fa-xs"></i></a></li>
+<li><a href="https://github.com/kaini/aoc2018">Advent of Code 2018 (Java; work in progress in 2021)&#x202F;<i class="fas fa-external-link-alt fa-xs"></i></a></li>
+<li>I want to do the missing years once I have some free time&nbsp;...</li>
+</ul>
+</li>
+<li><a href="/about/">About This Website</a>: How was this website made?</li>
+</ul>
+
+
+    </article>
+  </div>
+
+  <footer class="my-footer">
+    <div class="container">
+      <div class="row">
+        <div class="col">
+          <p>Feel free to write me an <a href="mailto:&#107;&#097;&#105;&#110;&#105;&#064;&#112;&#117;&#115;&#104;&#114;&#097;&#120;&#046;&#099;&#111;&#109;">email</a>.</p>
+          <p>Github: <a href="https://github.com/kaini">kaini</a>.</p>
+          <p>By Michael Kainer.</p>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <div class="modal fade" id="imageModal" tabindex="-1" aria-labelledby="imageModalImage" aria-hidden="true">
+    <div class="modal-dialog">
+      <img id="imageModalImage" src="" alt="" title="">
+      <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+    </div>
+  </div>
+  <script type="text/javascript">
+    (function() {
+      var img = document.getElementById("imageModalImage");
+
+      document.getElementById("imageModal").addEventListener("show.bs.modal", function (event) {
+        var button = event.relatedTarget;
+        img.setAttribute("src", button.children[0].getAttribute("src"));
+        img.setAttribute("alt", button.children[0].getAttribute("alt"));
+        img.setAttribute("title", button.children[0].getAttribute("title"));
+      });
+    })();
+  </script>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/js/bootstrap.bundle.min.js" integrity="sha384-JEW9xMcG8R+pH31jmWH6WWP0WintQrMb4s7ZOdauHnUtxwoG2vI5DkLtS3qm9Ekf" crossorigin="anonymous"></script>
+</body>
+</html>

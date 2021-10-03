@@ -1,0 +1,333 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-eOJMYsd53ii+scO/bJGFsiCZc+5NDVN2yr8+0RDqr0Ql0h+rP48ckxlpbzKgwra6" crossorigin="anonymous">
+  <link rel="stylesheet" href="../../static/pygments.css">
+  <link rel="stylesheet" href="../../static/style.css">
+  <script src="https://kit.fontawesome.com/bcca6c1b87.js" crossorigin="anonymous"></script>
+
+  <title>
+    
+      
+      
+      
+        E-Ink Clock:
+      
+    
+      
+        Software &mdash; pushrax.com
+      
+    
+    
+  </title>
+</head>
+<body>
+  <header class="my-header">
+    <div class="container">
+      <div class="row">
+        <div class="col">
+          <h1 class="display-1">pushrax.com</h1>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <nav aria-label="breadcrumb" class="my-breadcrumb">
+    <div class="container">
+      <div class="row d-flex align-items-center">
+        <div class="col">
+          <ol class="breadcrumb" style="margin: 0;">
+            
+              
+              
+              <li class="breadcrumb-item"><a href="/">Home</a></li>
+            
+              <li class="breadcrumb-item"><a href="/e-ink-clock">E-Ink Clock</a></li>
+            
+            <li class="breadcrumb-item active" aria-current="page">Software</li>
+          </ol>
+        </div>
+      </div>
+    </div>
+  </nav>
+  
+  <div class="container my-content">
+    <article>
+      
+  <h1>
+    
+      
+      
+      
+        E-Ink Clock:
+      
+    
+      
+        Software
+      
+    
+    
+  </h1>
+  <p>The <a href="http://www.nxp.com/products/microcontrollers-and-processors/arm-processors/lpc-cortex-m-mcus/lpc1200-cortex-m0/128kb-flash-8kb-sram-lqfp48-package:LPC1227FBD48">LPC1227&#x202F;<i class="fas fa-external-link-alt fa-xs"></i></a>
+is programmed using the <a href="https://www.rust-lang.org/">Rust&#x202F;<i class="fas fa-external-link-alt fa-xs"></i></a> programming language.
+I have eyeballed with Rust since it was in beta but up until now I have not had
+the opportunity to build something interesting with it. Therefore the decision
+to go with Rust was not a technical one, but purely out of interest.</p>
+<p>This article is not a tutorial or step by step description of how to use Rust
+with such a microcontroller, but merely a collection of things
+that I think are worthy to be documented. You can see the full code in the
+<a href="https://github.com/kaini/eink-clock/tree/master/timekeeper">GitHub repository&#x202F;<i class="fas fa-external-link-alt fa-xs"></i></a>.</p>
+<h2>Toolchain</h2>
+<p>To build the project I use Rust nightly:</p>
+<pre><code>rustup 1.2.0 (70faf07 2017-04-08)
+rustc 1.18.0-nightly (63c77214c 2017-04-24)
+cargo 0.19.0-nightly (8326a3683 2017-04-19)
+xargo 0.3.6
+gcc version 5.4.1 20160609 (release)
+    [ARM/embedded-5-branch revision 237715]
+    (GNU Tools for ARM Embedded Processors)
+</code></pre>
+<p>I used <a href="https://github.com/japaric/xargo">xargo&#x202F;<i class="fas fa-external-link-alt fa-xs"></i></a>, a <a href="https://crates.io/">cargo&#x202F;<i class="fas fa-external-link-alt fa-xs"></i></a> drop-in replacement,
+to do the cross-compilation from my Windows&nbsp;10 AMD64 machine to the ARMv6 (Thumb) target processor. Installing xargo via cargo and working with xargo is easy and works flawlessly. One
+just has to type <code>xargo</code> instead of <code>cargo</code> and specify the target platform.</p>
+<p>Apropos target platform. To get the program building I had to create my own target specification, mostly because I wanted to control the linker flags in detail. Creating a target specification is 
+not so easy because it is not documented well. Most of the required information can be found in
+an <a href="https://github.com/rust-lang/rust/blob/c2d53dce7eaef554a6c48eb5f179884becee4d82/src/librustc_back/target/mod.rs">internal module of rustc&#x202F;<i class="fas fa-external-link-alt fa-xs"></i></a>.</p>
+<p>If this file is called <code>lpc1227-none-eabi.json</code> the build can be invoked by
+executing <code>xargo build --target lpc1227-none-eabi --release</code>.</p>
+<div class="hll"><pre><span></span><span class="p">{</span>
+    <span class="nt">&quot;linker&quot;</span><span class="p">:</span> <span class="s2">&quot;arm-none-eabi-gcc&quot;</span><span class="p">,</span>
+    <span class="nt">&quot;linker-is-gnu&quot;</span><span class="p">:</span> <span class="kc">true</span><span class="p">,</span>
+    <span class="nt">&quot;linker-flavor&quot;</span><span class="p">:</span> <span class="s2">&quot;gcc&quot;</span><span class="p">,</span>
+    <span class="nt">&quot;pre-link-args&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="nt">&quot;gcc&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;-nostartfiles&quot;</span><span class="p">,</span> <span class="s2">&quot;-nodefaultlibs&quot;</span><span class="p">,</span> <span class="s2">&quot;-nostdlib&quot;</span><span class="p">,</span> <span class="s2">&quot;-mthumb&quot;</span><span class="p">,</span> <span class="s2">&quot;-mcpu=cortex-m0&quot;</span><span class="p">,</span> <span class="s2">&quot;-mfloat-abi=soft&quot;</span><span class="p">,</span> <span class="s2">&quot;-Tlinker.ld&quot;</span><span class="p">]</span>
+    <span class="p">},</span>
+    <span class="nt">&quot;post-link-args&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="nt">&quot;gcc&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;-lm&quot;</span><span class="p">,</span> <span class="s2">&quot;-lgcc&quot;</span><span class="p">]</span>
+    <span class="p">},</span>
+    <span class="nt">&quot;executables&quot;</span><span class="p">:</span> <span class="kc">true</span><span class="p">,</span>
+    <span class="nt">&quot;panic-strategy&quot;</span><span class="p">:</span> <span class="s2">&quot;abort&quot;</span><span class="p">,</span>
+    <span class="nt">&quot;relocation-model&quot;</span><span class="p">:</span> <span class="s2">&quot;static&quot;</span><span class="p">,</span>
+    <span class="nt">&quot;llvm-target&quot;</span><span class="p">:</span> <span class="s2">&quot;thumbv6m-none-eabi&quot;</span><span class="p">,</span>
+    <span class="nt">&quot;target-endian&quot;</span><span class="p">:</span> <span class="s2">&quot;little&quot;</span><span class="p">,</span>
+    <span class="nt">&quot;target-pointer-width&quot;</span><span class="p">:</span> <span class="s2">&quot;32&quot;</span><span class="p">,</span>
+    <span class="nt">&quot;data-layout&quot;</span><span class="p">:</span> <span class="s2">&quot;e-m:e-p:32:32-i64:64-v128:64:128-a:0:32-n32-S64&quot;</span><span class="p">,</span>
+    <span class="nt">&quot;arch&quot;</span><span class="p">:</span> <span class="s2">&quot;arm&quot;</span><span class="p">,</span>
+    <span class="nt">&quot;os&quot;</span><span class="p">:</span> <span class="s2">&quot;none&quot;</span><span class="p">,</span>
+    <span class="nt">&quot;env&quot;</span><span class="p">:</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
+    <span class="nt">&quot;vendor&quot;</span><span class="p">:</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
+    <span class="nt">&quot;features&quot;</span><span class="p">:</span> <span class="s2">&quot;+strict-align&quot;</span><span class="p">,</span>
+    <span class="nt">&quot;max-atomic-width&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+    <span class="nt">&quot;cpu&quot;</span><span class="p">:</span> <span class="s2">&quot;cortex-m0&quot;</span>
+<span class="p">}</span>
+</pre></div>
+<p>Most of these things are copied from the original <code>thumbv6m</code> specification. The
+only interesting thing are the linker arguments. Since the project does need a
+C-runtime library I disabled it in the linker flags. I do still need some
+intrinsics, e.g., division, and therefore have to link against <code>libgcc</code>. Additionally I link
+against <code>libm</code> because I need trigonometric functions.</p>
+<p>Since this is an embedded target and there is no out-of-the-box embedded Rust
+IDE that is going to do this for me I had to provide <a href="https://github.com/kaini/eink-clock/blob/master/timekeeper/linker.ld">my own linker script&#x202F;<i class="fas fa-external-link-alt fa-xs"></i></a>. Like most linker scripts it
+is pure magic. Basically I divide the RAM (8&nbsp;KiB) in four sections:
+2&nbsp;KiB stack space, a data and BSS section and the rest for the heap.
+The flash memory contains all static data and the ISR
+pointers at offset 0.</p>
+<h2>Microcontroller Startup in Rust</h2>
+<p>Describing all language features and code lines required to execute Rust code
+on the microcontroller is way too much for this article, but I will try to give
+an overview of all required steps in the startup sequence. Most
+things described here happen in <a href="https://github.com/kaini/eink-clock/blob/master/timekeeper/src/timekeeper.rs"><code>timekeeper.rs</code>&#x202F;<i class="fas fa-external-link-alt fa-xs"></i></a>.</p>
+<ol>
+<li><p>After power up, the microcontroller looks in the ISR-table for the pointer to the startup
+function and the initial stack-pointer. Both addresses are provided by Rust
+using a static variable that has a special <code>link_section</code> which is eventually
+referenced by the linker script. Interesting to note here is that Rust guarantees
+that <code>Option&lt;unsafe extern fn()&gt;</code> is either a valid address or a null-pointer,
+i.e., there is no “tagged union overhead.”</p>
+<div class="hll"><pre><span></span><span class="cp">#[cfg(not(test))]</span><span class="w"></span>
+<span class="cp">#[link_section = </span><span class="s">&quot;.isr_vectors&quot;</span><span class="cp">]</span><span class="w"></span>
+<span class="cp">#[no_mangle]</span><span class="w"></span>
+<span class="k">pub</span><span class="w"> </span><span class="k">static</span><span class="w"> </span><span class="n">ISR_VECTORS</span>: <span class="p">[</span><span class="nb">Option</span><span class="o">&lt;</span><span class="k">unsafe</span><span class="w"> </span><span class="k">extern</span><span class="w"> </span><span class="k">fn</span><span class="p">()</span><span class="o">&gt;</span><span class="p">;</span><span class="w"> </span><span class="mi">47</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="w"></span>
+<span class="w">    </span><span class="nb">Some</span><span class="p">(</span><span class="n">__stack_end__</span><span class="p">),</span><span class="w">  </span><span class="c1">// Initial SP</span>
+<span class="w">    </span><span class="nb">Some</span><span class="p">(</span><span class="n">reset_handler</span><span class="p">),</span><span class="w">  </span><span class="c1">// Reset handler</span>
+<span class="w">    </span><span class="nb">Some</span><span class="p">(</span><span class="n">nmi_handler</span><span class="p">),</span><span class="w">  </span><span class="c1">// NMI handler</span>
+<span class="w">    </span><span class="nb">Some</span><span class="p">(</span><span class="n">hard_fault_handler</span><span class="p">),</span><span class="w">  </span><span class="c1">// Hard fault handler</span>
+</pre></div>
+</li>
+<li><p>The <code>reset_handler</code> function is going to call <code>main</code> immediately.</p>
+</li>
+<li><p>The first thing I have to do is to disable the Watchdog Timer, otherwise the
+CPU is going to reset itself after some time. After that I initialize critical
+hardware like the E-Ink power supplies and the CPU itself.</p>
+</li>
+<li><p>Until now no global data structures have been initialized, each access to a
+static variable could lead to a crash or dangerous behavior. Since there is
+no C-runtime involved I have to manually copy the initial static data from the
+flash memory into the RAM and zero the BSS segment in the RAM. This is both
+done now:</p>
+<div class="hll"><pre><span></span><span class="c1">// Zero .bss</span>
+<span class="kd">let</span><span class="w"> </span><span class="n">bss_size</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="o">&amp;</span><span class="n">__bss_end__</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="o">*</span><span class="k">const</span><span class="w"> </span><span class="kt">u32</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="kt">usize</span><span class="p">)</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="p">(</span><span class="o">&amp;</span><span class="n">__bss_start__</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="o">*</span><span class="k">const</span><span class="w"> </span><span class="kt">u32</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="kt">usize</span><span class="p">);</span><span class="w"></span>
+<span class="n">ptr</span>::<span class="n">write_bytes</span><span class="p">(</span><span class="o">&amp;</span><span class="k">mut</span><span class="w"> </span><span class="n">__bss_start__</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="n">bss_size</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="mi">4</span><span class="p">);</span><span class="w"></span>
+
+<span class="c1">// Copy .data</span>
+<span class="kd">let</span><span class="w"> </span><span class="n">data_size</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="o">&amp;</span><span class="n">__data_end__</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="o">*</span><span class="k">const</span><span class="w"> </span><span class="kt">u32</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="kt">usize</span><span class="p">)</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="p">(</span><span class="o">&amp;</span><span class="n">__data_start__</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="o">*</span><span class="k">const</span><span class="w"> </span><span class="kt">u32</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="kt">usize</span><span class="p">);</span><span class="w"></span>
+<span class="n">ptr</span>::<span class="n">copy_nonoverlapping</span><span class="p">(</span><span class="o">&amp;</span><span class="n">__data_source_start__</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="k">mut</span><span class="w"> </span><span class="n">__data_start__</span><span class="p">,</span><span class="w"> </span><span class="n">data_size</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="mi">4</span><span class="p">);</span><span class="w"></span>
+</pre></div>
+<p>The <code>__*_start__</code> and <code>__*_end__</code> variables are exported by the linker script.</p>
+</li>
+<li><p>Since there is no C-runtime there is no possibility to dynamically
+allocate memory. To overcome this I used <a href="https://crates.io/crates/linked_list_allocator">an existing memory allocator&#x202F;<i class="fas fa-external-link-alt fa-xs"></i></a>, wrapped it into an <a href="https://doc.rust-lang.org/book/custom-allocators.html"><code>#![allocator]</code> crate&#x202F;<i class="fas fa-external-link-alt fa-xs"></i></a>, and referenced
+this crate from the main crate. The only thing left to do now was to call its
+initialization function.</p>
+</li>
+<li><p>After all these steps I initialize the rest of the hardware.</p>
+</li>
+</ol>
+<p>Additionally I had to provide some intrinsics. I defined them in
+Rust as well and delegated as much as possible to <a href="https://crates.io/crates/rlibc">rlibc&#x202F;<i class="fas fa-external-link-alt fa-xs"></i></a>.
+To make this work I also had to add <code>#![feature(core_intrinsics)]</code> to the file. This
+is to avoid that the compiler optimizes my implementation of e.g. <code>memcpy</code> with
+a call to <code>memcpy</code>, thus leading to an endless recursion.
+Here is an example of such an intrinsic:</p>
+<div class="hll"><pre><span></span><span class="cp">#[cfg(not(test))]</span><span class="w"></span>
+<span class="cp">#[no_mangle]</span><span class="w"></span>
+<span class="k">pub</span><span class="w"> </span><span class="k">unsafe</span><span class="w"> </span><span class="k">extern</span><span class="w"> </span><span class="k">fn</span> <span class="nf">__aeabi_memcpy4</span><span class="p">(</span><span class="n">dest</span>: <span class="o">*</span><span class="k">mut</span><span class="w"> </span><span class="kt">u8</span><span class="p">,</span><span class="w"> </span><span class="n">src</span>: <span class="o">*</span><span class="k">const</span><span class="w"> </span><span class="kt">u8</span><span class="p">,</span><span class="w"> </span><span class="n">n</span>: <span class="kt">usize</span><span class="p">)</span><span class="w"> </span>-&gt; <span class="o">*</span><span class="k">mut</span><span class="w"> </span><span class="kt">u8</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="n">rlibc</span>::<span class="n">memcpy</span><span class="p">(</span><span class="n">dest</span><span class="p">,</span><span class="w"> </span><span class="n">src</span><span class="p">,</span><span class="w"> </span><span class="n">n</span><span class="p">)</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
+</pre></div>
+<h2>Talking With the Hardware</h2>
+<p>The ARM architecture does not have special I/O-instructions but works with mapped
+memory. This makes interfacing the hardware easy, because I just have to obtain
+a pointer to the correct location and perform a volatile read or write. Since most
+hardware registers are split in fields, I <a href="https://github.com/kaini/eink-clock/blob/master/timekeeper/src/rawhw/register.rs">defined a macro&#x202F;<i class="fas fa-external-link-alt fa-xs"></i></a> that adds
+some convenience when interfacing with such registers. Thanks to this abstraction,
+I never had to use bitwise arithmetic when working with the hardware registers.</p>
+<p>For example the a part of the <a href="https://github.com/kaini/eink-clock/blob/master/timekeeper/src/rawhw/ssp.rs">registers concerning the SSP controller&#x202F;<i class="fas fa-external-link-alt fa-xs"></i></a> looks like this:</p>
+<div class="hll"><pre><span></span><span class="n">register_block</span><span class="o">!</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="n">cr0</span><span class="w"> </span><span class="mh">0x40040000</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">        </span><span class="mi">0</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="w"> </span><span class="n">dss</span><span class="p">,</span><span class="w"> </span><span class="kt">u8</span><span class="p">;</span><span class="w"></span>
+<span class="w">        </span><span class="mi">4</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="w"> </span><span class="n">frf</span><span class="p">,</span><span class="w"> </span><span class="n">FrameFormat</span><span class="p">;</span><span class="w"></span>
+<span class="w">        </span><span class="mi">6</span><span class="p">,</span><span class="w"> </span><span class="n">cpol</span><span class="p">,</span><span class="w"> </span><span class="kt">bool</span><span class="p">;</span><span class="w"></span>
+<span class="w">        </span><span class="mi">7</span><span class="p">,</span><span class="w"> </span><span class="n">cpha</span><span class="p">,</span><span class="w"> </span><span class="kt">bool</span><span class="p">;</span><span class="w"></span>
+<span class="w">        </span><span class="mi">8</span><span class="p">,</span><span class="mi">15</span><span class="p">,</span><span class="w"> </span><span class="n">scr</span><span class="p">,</span><span class="w"> </span><span class="kt">u8</span><span class="p">;</span><span class="w"></span>
+<span class="w">    </span><span class="p">}</span><span class="w"></span>
+<span class="w">    </span><span class="n">cr1</span><span class="w"> </span><span class="mh">0x40040004</span><span class="p">,</span><span class="w"> </span><span class="n">andmask</span><span class="w"> </span><span class="mb">0b1111</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">        </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="n">lbm</span><span class="p">,</span><span class="w"> </span><span class="kt">bool</span><span class="p">;</span><span class="w"></span>
+<span class="w">        </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="n">sse</span><span class="p">,</span><span class="w"> </span><span class="kt">bool</span><span class="p">;</span><span class="w"></span>
+<span class="w">        </span><span class="mi">2</span><span class="p">,</span><span class="w"> </span><span class="n">ms</span><span class="p">,</span><span class="w"> </span><span class="kt">bool</span><span class="p">;</span><span class="w"></span>
+<span class="w">        </span><span class="mi">3</span><span class="p">,</span><span class="w"> </span><span class="n">sod</span><span class="p">,</span><span class="w"> </span><span class="kt">bool</span><span class="p">;</span><span class="w"></span>
+<span class="w">    </span><span class="p">}</span><span class="w"></span>
+</pre></div>
+<p>This macro defines unsafe functions to access the fields, for example this allows
+me to invoke <code>rawhw::ssp::cr1::dss::get()</code> or <code>::set(12)</code>. The only
+issue I had with this abstraction is that there are some registers that have a
+side-effect on reading. Since <code>set</code> has to read the register to set a field this
+can lead to very confusing side effects.</p>
+<p>This could be improved by having read-only, write-only and read-write registers
+and by introducing some kind of transactional semantic to avoid unnecessary
+reads when setting a field.</p>
+<h2>Talking With the Debugger</h2>
+<p>Cortex CPUs have a very convenient feature called <a href="http://www.keil.com/support/man/docs/armcc/armcc_pge1358787046598.htm">semihosting&#x202F;<i class="fas fa-external-link-alt fa-xs"></i></a> that allows the embedded program to
+print directly to the host PC if the debugging interface is attached. To use this
+feature one has to prepare certain registers and then invoke a special instruction.
+Thanks to inline assembly this was easy to achieve in Rust.</p>
+<div class="hll"><pre><span></span><span class="cp">#[cfg(feature = </span><span class="s">&quot;semihosted&quot;</span><span class="cp">)]</span><span class="w"></span>
+<span class="k">pub</span><span class="w"> </span><span class="k">unsafe</span><span class="w"> </span><span class="k">fn</span> <span class="nf">write0</span><span class="p">(</span><span class="n">ptr</span>: <span class="o">*</span><span class="k">const</span><span class="w"> </span><span class="kt">u8</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="c1">// See newlib for details (libgloss/arm/swi.h)</span>
+<span class="w">    </span><span class="fm">asm!</span><span class="p">(</span><span class="w"></span>
+<span class="w">        </span><span class="s">&quot;bkpt 0xAB&quot;</span><span class="w"></span>
+<span class="w">        </span>:  <span class="c1">// Outputs</span>
+<span class="w">        </span>: <span class="s">&quot;{r0}&quot;</span><span class="p">(</span><span class="mh">0x04</span><span class="p">),</span><span class="w"> </span><span class="s">&quot;{r1}&quot;</span><span class="p">(</span><span class="n">ptr</span><span class="p">)</span><span class="w">  </span><span class="c1">// Inputs</span>
+<span class="w">        </span>: <span class="s">&quot;r0&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;r1&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;r2&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;r3&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;ip&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;lr&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;memory&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;cc&quot;</span><span class="w">  </span><span class="c1">// Clobbers</span>
+<span class="w">    </span><span class="p">);</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
+</pre></div>
+<p>I was not able to achieve a pleasant debugging experience, but in theory it should
+be possible to attach to the GDB server that for example <a href="http://www.nxp.com/products/microcontrollers-and-processors/arm-processors/lpc-cortex-m-mcus/lpc1100-cortex-m0-plus-m0/lpcxpresso-ide-v8.2.2:LPCXPRESSO">LPCXpresso&#x202F;<i class="fas fa-external-link-alt fa-xs"></i></a> (an Eclipse based IDE for LPC microcontrollers) starts when
+flashing and debugging the target device. At least I was able to trick LPCXpresso into
+placing breakpoints by forcing it to open <code>.rs</code> files as C source code files.</p>
+<h2>A Short Summary of the Architecture</h2>
+<p>The project is split in three layers:</p>
+<ul>
+<li><p><code>rawhw</code> contains the aforementioned <code>register_block</code> definitions and therefore
+exports unsafe APIs only.</p>
+</li>
+<li><p><code>devices</code> contains code to interface with various devices on a high level. This
+code uses the functions provided by <code>rawhw</code> and exposes a safe interface to talk
+to the hardware units. The code in this module is highly unsafe and not threading
+aware, because the CPU does not have threads. The exposed safe interfaces are still
+a small lie, because ISRs are technically able to call them without an unsafe block.
+But since ISRs are unsafe code by definition I think this tradeoff is acceptable.</p>
+</li>
+<li><p><code>app</code> contains the logic of the application. This includes a small DST-aware
+date-time structure and functions to rasterize the graphics. Programming this part
+felt like programming normal Rust, with the exception that I had to provide
+safe wrappers to call the <a href="https://doc.rust-lang.org/nightly/core/intrinsics/">unsafe floating point intrinsics&#x202F;<i class="fas fa-external-link-alt fa-xs"></i></a>.</p>
+<p>Insider tip: Implementing triangle rasterization is a very tedious and ugly task.</p>
+</li>
+</ul>
+<h2>Conclusion About Rust</h2>
+<p>Please take these thoughts with a grain of salt. As we all know, it is much easier
+to criticize than to actually improve something.</p>
+<ul>
+<li>The language feels very good. No implicit integer conversions. No integer promotion.
+I like the way how macros work. Feature flags instead if <code>#ifdef</code>s are great.
+Defined overflows are good, although I am not 100&nbsp;% sold on the idea that
+overflows panic in debug builds.</li>
+<li>The tooling could be better, but I am spoiled by Visual Studio, therefore it is
+going to be very difficult to meet my expectations. Although Visual Studio Code
+with the <a href="https://marketplace.visualstudio.com/items?itemName=saviorisdead.RustyCode">Rusty Code extension&#x202F;<i class="fas fa-external-link-alt fa-xs"></i></a> works well, the auto-completion is severely lacking.
+If I had to choose a single criticism from this list, it would be this one.</li>
+<li>cargo &amp; xargo and the way building works is great but the functionality of xargo should probably be merged into cargo and build times are slow.</li>
+<li>I really like that tests can be written directly underneath the module and that
+testing works so flawlessly.</li>
+<li><p>The unused-warnings are way too eager, especially in combination with
+test builds and feature flags. But I have no idea how to improve this. Maybe
+it would be better not to issue an unused-warning if there is at least one code path in any feature flag combination that uses the variable/module/parameter.</p>
+<p>For example, in this application
+I have a <a href="https://github.com/kaini/eink-clock/blob/master/timekeeper/src/debug.rs">logging macro&#x202F;<i class="fas fa-external-link-alt fa-xs"></i></a> that compiles to a no-op in release builds. But this leads to,
+arguably spurious, unused-variable-warnings.</p>
+</li>
+</ul>
+
+
+    </article>
+  </div>
+
+  <footer class="my-footer">
+    <div class="container">
+      <div class="row">
+        <div class="col">
+          <p>Feel free to write me an <a href="mailto:&#107;&#097;&#105;&#110;&#105;&#064;&#112;&#117;&#115;&#104;&#114;&#097;&#120;&#046;&#099;&#111;&#109;">email</a>.</p>
+          <p>Github: <a href="https://github.com/kaini">kaini</a>.</p>
+          <p>By Michael Kainer.</p>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <div class="modal fade" id="imageModal" tabindex="-1" aria-labelledby="imageModalImage" aria-hidden="true">
+    <div class="modal-dialog">
+      <img id="imageModalImage" src="" alt="" title="">
+      <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+    </div>
+  </div>
+  <script type="text/javascript">
+    (function() {
+      var img = document.getElementById("imageModalImage");
+
+      document.getElementById("imageModal").addEventListener("show.bs.modal", function (event) {
+        var button = event.relatedTarget;
+        img.setAttribute("src", button.children[0].getAttribute("src"));
+        img.setAttribute("alt", button.children[0].getAttribute("alt"));
+        img.setAttribute("title", button.children[0].getAttribute("title"));
+      });
+    })();
+  </script>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/js/bootstrap.bundle.min.js" integrity="sha384-JEW9xMcG8R+pH31jmWH6WWP0WintQrMb4s7ZOdauHnUtxwoG2vI5DkLtS3qm9Ekf" crossorigin="anonymous"></script>
+</body>
+</html>

@@ -1,0 +1,74 @@
+/*
+    #7c7b89
+    #f1e4de
+    #f4d75e
+    #e9723d
+    #0b7fab
+*/
+
+html, body {
+    height: 100%;
+}
+
+body {
+    display: flex;
+    flex-direction: column;
+}
+
+.my-header {
+    background-color: #7c7b89;
+}
+
+.my-breadcrumb {
+    background-color: #f1e4de;
+}
+
+.my-content {
+    flex: 1;
+}
+
+.img-thumbnail {
+    max-width: min(576px, 100%);
+    height: auto;
+}
+
+.modal-open {
+    overflow: inherit;
+    padding-right: 0 !important;
+}
+
+#imageModal {
+    padding-right: 0 !important;
+}
+
+#imageModal .modal-dialog {
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 10vmin;
+    max-width: none;
+    max-height: none;
+}
+
+#imageModal .btn-close {
+    display: block;
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    pointer-events: auto;
+}
+
+#imageModal img {
+    width: 100%;
+    height: 100%;
+    object-fit: scale-down;
+}
+
+.my-footer {
+    background-color: #f4d75e;
+    padding-bottom: 0.5rem;
+}
+
+.my-footer p {
+    margin-bottom: 0;
+}
