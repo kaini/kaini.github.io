@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-eOJMYsd53ii+scO/bJGFsiCZc+5NDVN2yr8+0RDqr0Ql0h+rP48ckxlpbzKgwra6" crossorigin="anonymous">
+  <link rel="stylesheet" href="../static/pygments.css">
+  <link rel="stylesheet" href="../static/style.css">
+  <script src="https://kit.fontawesome.com/bcca6c1b87.js" crossorigin="anonymous"></script>
+
+  <title>
+    
+      
+      
+        E-Ink Clock &mdash; pushrax.com
+      
+    
+    
+  </title>
+</head>
+<body>
+  <header class="my-header">
+    <div class="container">
+      <div class="row">
+        <div class="col">
+          <h1 class="display-1">pushrax.com</h1>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <nav aria-label="breadcrumb" class="my-breadcrumb">
+    <div class="container">
+      <div class="row d-flex align-items-center">
+        <div class="col">
+          <ol class="breadcrumb" style="margin: 0;">
+            
+              
+              <li class="breadcrumb-item"><a href="/">Home</a></li>
+            
+            <li class="breadcrumb-item active" aria-current="page">E-Ink Clock</li>
+          </ol>
+        </div>
+      </div>
+    </div>
+  </nav>
+  
+  <div class="container my-content">
+    <article>
+      
+  <h1>
+    
+      
+      
+        E-Ink Clock
+      
+    
+    
+  </h1>
+  <p>This contains the documentation of how I created a <a href="https://en.wikipedia.org/wiki/DCF77">DCF77&#x202F;<i class="fas fa-external-link-alt fa-xs"></i></a> synchronized E-Ink clock
+using the <a href="https://www.rust-lang.org/">Rust&#x202F;<i class="fas fa-external-link-alt fa-xs"></i></a> programming language. The source code
+can be found on <a href="https://github.com/kaini/eink-clock">GitHub&#x202F;<i class="fas fa-external-link-alt fa-xs"></i></a>.</p>
+<ul>
+<li><a href="/e-ink-clock/hardware/">Hardware</a>: How is the hardware wired? Contains schematics.</li>
+<li><a href="/e-ink-clock/e-ink-display/">E-Ink Display</a>: This page describes the waveforms I use to drive the ED060SC4 E-Ink display. Nice diagrams included.</li>
+<li><a href="/e-ink-clock/software/">Software</a>: My experiences with using Rust to program and debug the LPC1227 ARM CPU that controls the clock. Contains my tool-chain setup.</li>
+</ul>
+<h2>End Result</h2>
+<p>I do not have a nice case yet, but here is how the clock looks right now. Also,
+please ignore the horizontal ghosting lines, this is due to a bad contact on the
+FPC connector of the E-Ink display. At least I hope so. During prototyping I had to 
+plug the display in and out several times, which unfortunately partially removed the
+copper on the display connector.</p>
+<p><a href="#" data-bs-toggle="modal" data-bs-target="#imageModal">
+                        <img src="full.jpg" alt="The E-Ink Clock in All Its Glory" title="The E-Ink Clock in All Its Glory" class="img-thumbnail rounded">
+                    </a></p>
+<p><a href="#" data-bs-toggle="modal" data-bs-target="#imageModal">
+                        <img src="pcb.jpg" alt="The PCB" title="The PCB" class="img-thumbnail rounded">
+                    </a></p>
+<p>Here you can see the prototype (with two missing MOSFETs, no RAM and a different
+way to generate the E-Ink voltages) on a breadboard:</p>
+<p><a href="#" data-bs-toggle="modal" data-bs-target="#imageModal">
+                        <img src="prototype.jpg" alt="The Prototype" title="The Prototype" class="img-thumbnail rounded">
+                    </a></p>
+
+
+    </article>
+  </div>
+
+  <footer class="my-footer">
+    <div class="container">
+      <div class="row">
+        <div class="col">
+          <p>Feel free to write me an <a href="mailto:&#107;&#097;&#105;&#110;&#105;&#064;&#112;&#117;&#115;&#104;&#114;&#097;&#120;&#046;&#099;&#111;&#109;">email</a>.</p>
+          <p>Github: <a href="https://github.com/kaini">kaini</a>.</p>
+          <p>By Michael Kainer.</p>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <div class="modal fade" id="imageModal" tabindex="-1" aria-labelledby="imageModalImage" aria-hidden="true">
+    <div class="modal-dialog">
+      <img id="imageModalImage" src="" alt="" title="">
+      <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+    </div>
+  </div>
+  <script type="text/javascript">
+    (function() {
+      var img = document.getElementById("imageModalImage");
+
+      document.getElementById("imageModal").addEventListener("show.bs.modal", function (event) {
+        var button = event.relatedTarget;
+        img.setAttribute("src", button.children[0].getAttribute("src"));
+        img.setAttribute("alt", button.children[0].getAttribute("alt"));
+        img.setAttribute("title", button.children[0].getAttribute("title"));
+      });
+    })();
+  </script>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/js/bootstrap.bundle.min.js" integrity="sha384-JEW9xMcG8R+pH31jmWH6WWP0WintQrMb4s7ZOdauHnUtxwoG2vI5DkLtS3qm9Ekf" crossorigin="anonymous"></script>
+</body>
+</html>
